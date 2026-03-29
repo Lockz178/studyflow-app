@@ -1136,7 +1136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
-                    value: _selectedSubject,
+                    initialValue: _selectedSubject,
                     decoration: _inputDecoration(
                       context,
                       'Choose a subject',
@@ -2356,7 +2356,6 @@ class _PlansPageState extends State<PlansPage> {
 
   @override
   Widget build(BuildContext context) {
-    final textPrimary = Theme.of(context).colorScheme.onSurface;
     final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Scaffold(
@@ -2434,9 +2433,13 @@ class _ProgressPageState extends State<ProgressPage> {
 
   @override
   Widget build(BuildContext context) {
-    final textPrimary = Theme.of(context).colorScheme.onSurface;
     final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
-    final completedPlans = widget.plans.where((plan) => plan.isCompleted).length;
+    final completedPlanList = widget.plans.where((plan) => plan.isCompleted).toList();
+    final completedPlans = completedPlanList.length;
+    final completedDays = completedPlanList.fold<int>(
+      0,
+      (sum, plan) => sum + plan.completedCount,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -2475,7 +2478,7 @@ class _ProgressPageState extends State<ProgressPage> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  '${widget.plans.length} plans • $completedPlans completed',
+                  '$completedPlans completed plan${completedPlans == 1 ? '' : 's'} • $completedDays days done',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -2484,7 +2487,7 @@ class _ProgressPageState extends State<ProgressPage> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'Tap any plan below to see what you already finished and what is left.',
+                  'This page only shows study plans you finished (100%).',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -2495,16 +2498,16 @@ class _ProgressPageState extends State<ProgressPage> {
             ),
           ),
           const SizedBox(height: 18),
-          if (widget.plans.isEmpty)
+          if (completedPlanList.isEmpty)
             Text(
-              'No study plans yet. Create one from the dashboard first.',
+              'No completed plans yet. Finish a plan to see it here.',
               style: TextStyle(
                 fontSize: 15,
                 color: textSecondary,
               ),
             )
           else
-            ...widget.plans.map(
+            ...completedPlanList.map(
               (plan) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: StudyPlanCard(
@@ -2569,29 +2572,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: surface,
               borderRadius: BorderRadius.circular(24),
             ),
-            child: Column(
-              children: [
-                RadioListTile<ThemeMode>(
-                  value: ThemeMode.light,
-                  groupValue: widget.currentThemeMode,
-                  title: const Text('Light mode'),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    widget.onThemeChanged(value);
-                    setState(() {});
-                  },
-                ),
-                RadioListTile<ThemeMode>(
-                  value: ThemeMode.dark,
-                  groupValue: widget.currentThemeMode,
-                  title: const Text('Dark mode'),
-                  onChanged: (value) {
-                    if (value == null) return;
-                    widget.onThemeChanged(value);
-                    setState(() {});
-                  },
-                ),
-              ],
+            child: RadioGroup<ThemeMode>(
+              groupValue: widget.currentThemeMode,
+              onChanged: (value) {
+                if (value == null) return;
+                widget.onThemeChanged(value);
+                setState(() {});
+              },
+              child: const Column(
+                children: [
+                  RadioListTile<ThemeMode>(
+                    value: ThemeMode.light,
+                    title: Text('Light mode'),
+                  ),
+                  RadioListTile<ThemeMode>(
+                    value: ThemeMode.dark,
+                    title: Text('Dark mode'),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 22),
@@ -2645,7 +2644,6 @@ class PlaceholderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textPrimary = Theme.of(context).colorScheme.onSurface;
-    final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Scaffold(
       appBar: AppBar(
