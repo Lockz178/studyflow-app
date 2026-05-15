@@ -1,6 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:studyflow_app/premium/premium_controller.dart';
+import 'package:studyflow_app/premium/premium_scope.dart';
+import 'package:studyflow_app/premium/premium_ui.dart';
+import 'package:studyflow_app/schedule/schedule_page.dart';
+import 'package:studyflow_app/planner/planner_page.dart';
 
 void main() {
   runApp(const StudyFlowApp());
@@ -15,6 +20,19 @@ class StudyFlowApp extends StatefulWidget {
 
 class _StudyFlowAppState extends State<StudyFlowApp> {
   ThemeMode _themeMode = ThemeMode.dark;
+  late final PremiumController _premiumController;
+
+  @override
+  void initState() {
+    super.initState();
+    _premiumController = PremiumController(isPremium: false);
+  }
+
+  @override
+  void dispose() {
+    _premiumController.dispose();
+    super.dispose();
+  }
 
   void _changeTheme(ThemeMode mode) {
     setState(() {
@@ -24,15 +42,18 @@ class _StudyFlowAppState extends State<StudyFlowApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'StudyFlow',
-      themeMode: _themeMode,
-      theme: _lightTheme(),
-      darkTheme: _darkTheme(),
-      home: HomeScreen(
+    return PremiumScope(
+      controller: _premiumController,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'StudyFlow',
         themeMode: _themeMode,
-        onThemeChanged: _changeTheme,
+        theme: _lightTheme(),
+        darkTheme: _darkTheme(),
+        home: HomeScreen(
+          themeMode: _themeMode,
+          onThemeChanged: _changeTheme,
+        ),
       ),
     );
   }
@@ -724,6 +745,46 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
+  Future<void> _openPlannerPage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PlannerPage(
+          plans: _plans,
+          subjects: _subjects,
+          onCreatePlan: ({
+            required String topic,
+            required String subject,
+            required int totalDays,
+          }) {
+            final plan = _buildPlan(topic: topic, subject: subject, totalDays: totalDays);
+            setState(() {
+              _plans.insert(0, plan);
+            });
+          },
+          onOpenPlan: (plan) => _openPlanDetail(plan as StudyPlan),
+          onDeletePlan: _deletePlanById,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _openSchedulePage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SchedulePage(
+          plans: _plans,
+          events: _allEvents,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
   void _openPlaceholder(String title) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -777,11 +838,11 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         onOpenSchedule: () {
           Navigator.pop(context);
-          _openPlaceholder('Schedule');
+          _openSchedulePage();
         },
         onOpenPlanner: () {
           Navigator.pop(context);
-          _openPlansPage();
+          _openPlannerPage();
         },
         onOpenFavourites: () {
           Navigator.pop(context);
@@ -1345,11 +1406,11 @@ class AppDrawer extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'StudyFlow',
                           style: TextStyle(
                             color: Colors.white,
@@ -1357,13 +1418,32 @@ class AppDrawer extends StatelessWidget {
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
+                        const SizedBox(height: 4),
+                        const Text(
                           'Focus smarter. Stress less.',
                           style: TextStyle(
                             color: Colors.white70,
                             fontSize: 13,
                           ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const PremiumBadge(compact: true),
+                            const SizedBox(width: 10),
+                            TextButton(
+                              onPressed: () => showUpgradeBottomSheet(context),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              ),
+                              child: const Text(
+                                'Upgrade',
+                                style: TextStyle(fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -2558,6 +2638,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          Text(
+            'StudyFlow Plus',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: surface,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7C3AED).withAlpha(18),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: Color(0xFF8B5CF6),
+                    ),
+                  ),
+                  title: const Text(
+                    'Premium status',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  subtitle: const Text('Local test toggle (no billing yet)'),
+                  trailing: const PremiumBadge(compact: true),
+                  onTap: () => showUpgradeBottomSheet(context),
+                ),
+                SwitchListTile(
+                  value: PremiumScope.of(context).isPremium,
+                  title: const Text('Enable Premium (test)'),
+                  subtitle: const Text('Switch between free and premium behavior'),
+                  onChanged: (value) => PremiumScope.of(context).setPremium(value),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 22),
           Text(
             'Appearance',
             style: TextStyle(
