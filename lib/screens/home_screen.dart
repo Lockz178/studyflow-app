@@ -10,6 +10,7 @@ import '../widgets/study_plan_card.dart';
 import '../widgets/home/learning_tip_card.dart';
 import '../widgets/home/recommended_today_card.dart';
 import '../widgets/home/create_plan_card.dart';
+import '../validators/study_plan_validator.dart';
 import 'plan_detail_page.dart';
 import 'progress_page.dart';
 import 'placeholder_page.dart';
@@ -126,9 +127,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _createPlan() {
-    final topic = _topicController.text.trim().isEmpty
-        ? _selectedSubject
-        : _topicController.text.trim();
+    final validationMessage = validateStudyPlanTopic(_topicController.text);
+
+    if (validationMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(validationMessage),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final topic = _topicController.text.trim();
 
     _addPlan(
       topic: topic,
