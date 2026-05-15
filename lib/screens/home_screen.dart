@@ -12,9 +12,10 @@ import '../widgets/home/recommended_today_card.dart';
 import '../widgets/home/create_plan_card.dart';
 import 'plan_detail_page.dart';
 import 'progress_page.dart';
-import 'plans_page.dart';
 import 'placeholder_page.dart';
 import 'settings_screen.dart';
+import '../schedule/schedule_page.dart';
+import '../planner/planner_page.dart';
 
 class HomeScreen extends StatefulWidget {
   final ThemeMode themeMode;
@@ -97,21 +98,45 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  StudyPlan _addPlan({
+    required String topic,
+    required String subject,
+    required int totalDays,
+  }) {
+    final cleanTopic = topic.trim().isEmpty ? subject : topic.trim();
+    final plan = _buildPlan(
+      topic: cleanTopic,
+      subject: subject,
+      totalDays: totalDays,
+    );
+
+    setState(() {
+      _plans.insert(0, plan);
+    });
+
+    return plan;
+  }
+
+  void _createPlanFromValues({
+    required String topic,
+    required String subject,
+    required int totalDays,
+  }) {
+    _addPlan(topic: topic, subject: subject, totalDays: totalDays);
+  }
+
   void _createPlan() {
     final topic = _topicController.text.trim().isEmpty
         ? _selectedSubject
         : _topicController.text.trim();
 
-    final plan = _buildPlan(
+    _addPlan(
       topic: topic,
       subject: _selectedSubject,
       totalDays: _selectedDays.round(),
     );
 
-    setState(() {
-      _plans.insert(0, plan);
-      _topicController.clear();
-    });
+    _topicController.clear();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -325,10 +350,27 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  Future<void> _openPlansPage() async {
+  Future<void> _openPlannerPage() async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PlansPage(plans: _plans, onDeletePlan: _deletePlanById),
+        builder: (_) => PlannerPage(
+          plans: _plans,
+          subjects: MockDataService.subjects,
+          onCreatePlan: _createPlanFromValues,
+          onOpenPlan: (plan) => _openPlanDetail(plan as StudyPlan),
+          onDeletePlan: _deletePlanById,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _openSchedulePage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SchedulePage(plans: _plans, events: _allEvents),
       ),
     );
 
@@ -387,11 +429,11 @@ class _HomeScreenState extends State<HomeScreen> {
         onOpenDashboard: () => Navigator.pop(context),
         onOpenSchedule: () {
           Navigator.pop(context);
-          _openPlaceholder('Schedule');
+          _openSchedulePage();
         },
         onOpenPlanner: () {
           Navigator.pop(context);
-          _openPlansPage();
+          _openPlannerPage();
         },
         onOpenFavourites: () {
           Navigator.pop(context);
@@ -499,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Spacer(),
                 if (_plans.isNotEmpty)
                   TextButton(
-                    onPressed: _openPlansPage,
+                    onPressed: _openPlannerPage,
                     child: const Text('See all'),
                   ),
               ],

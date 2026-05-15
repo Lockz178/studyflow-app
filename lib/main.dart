@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'premium/premium_controller.dart';
+import 'premium/premium_scope.dart';
 import 'screens/home_screen.dart';
 
 void main() {
@@ -15,6 +17,7 @@ class StudyFlowApp extends StatefulWidget {
 
 class _StudyFlowAppState extends State<StudyFlowApp> {
   ThemeMode _themeMode = ThemeMode.dark;
+  final PremiumController _premiumController = PremiumController();
 
   void _changeTheme(ThemeMode mode) {
     setState(() {
@@ -23,14 +26,23 @@ class _StudyFlowAppState extends State<StudyFlowApp> {
   }
 
   @override
+  void dispose() {
+    _premiumController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'StudyFlow',
-      themeMode: _themeMode,
-      theme: _lightTheme(),
-      darkTheme: _darkTheme(),
-      home: HomeScreen(themeMode: _themeMode, onThemeChanged: _changeTheme),
+    return PremiumScope(
+      controller: _premiumController,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'StudyFlow',
+        themeMode: _themeMode,
+        theme: _lightTheme(),
+        darkTheme: _darkTheme(),
+        home: HomeScreen(themeMode: _themeMode, onThemeChanged: _changeTheme),
+      ),
     );
   }
 }
