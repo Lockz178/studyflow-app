@@ -5,12 +5,16 @@ class StudyPlanCard extends StatelessWidget {
   final StudyPlan plan;
   final VoidCallback onTap;
   final VoidCallback? onDelete;
+  final bool isFavorite;
+  final VoidCallback? onToggleFavorite;
 
   const StudyPlanCard({
     super.key,
     required this.plan,
     required this.onTap,
     this.onDelete,
+    this.isFavorite = false,
+    this.onToggleFavorite,
   });
 
   @override
@@ -50,6 +54,21 @@ class StudyPlanCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (onToggleFavorite != null)
+                  IconButton(
+                    tooltip: isFavorite
+                        ? 'Remove from favourites'
+                        : 'Add to favourites',
+                    onPressed: onToggleFavorite,
+                    icon: Icon(
+                      isFavorite
+                          ? Icons.star_rounded
+                          : Icons.star_outline_rounded,
+                      color: isFavorite
+                          ? const Color(0xFFFBBF24)
+                          : textSecondary,
+                    ),
+                  ),
                 if (onDelete != null) ...[
                   IconButton(
                     tooltip: 'Delete plan',

@@ -6,8 +6,18 @@ import 'package:flutter/material.dart';
 class PlanDetailPage extends StatefulWidget {
   final StudyPlan plan;
   final VoidCallback? onDeletePlan;
+  final VoidCallback? onPlanChanged;
+  final bool isFavorite;
+  final VoidCallback? onToggleFavorite;
 
-  const PlanDetailPage({super.key, required this.plan, this.onDeletePlan});
+  const PlanDetailPage({
+    super.key,
+    required this.plan,
+    this.onDeletePlan,
+    this.onPlanChanged,
+    this.isFavorite = false,
+    this.onToggleFavorite,
+  });
 
   @override
   State<PlanDetailPage> createState() => _PlanDetailPageState();
@@ -64,6 +74,7 @@ class _PlanDetailPageState extends State<PlanDetailPage> {
     setState(() {
       item.completed = !item.completed;
     });
+    widget.onPlanChanged?.call();
 
     if (!widget.plan.isCompleted) {
       widget.plan.completionCelebrated = false;
@@ -118,6 +129,21 @@ class _PlanDetailPageState extends State<PlanDetailPage> {
           style: const TextStyle(fontWeight: FontWeight.w900),
         ),
         actions: [
+          if (widget.onToggleFavorite != null)
+            IconButton(
+              tooltip: widget.isFavorite
+                  ? 'Remove from favourites'
+                  : 'Add to favourites',
+              onPressed: widget.onToggleFavorite,
+              icon: Icon(
+                widget.isFavorite
+                    ? Icons.star_rounded
+                    : Icons.star_outline_rounded,
+                color: widget.isFavorite
+                    ? const Color(0xFFFBBF24)
+                    : null,
+              ),
+            ),
           if (widget.onDeletePlan != null)
             IconButton(
               tooltip: 'Delete plan',
