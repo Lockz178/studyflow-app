@@ -1,88 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-import 'screens/home_screen.dart';
+import 'premium/premium_controller.dart';
+import 'premium/premium_scope.dart';
+import 'providers/app_settings_provider.dart';
+import 'providers/favourites_provider.dart';
+import 'providers/study_flow_controller.dart';
+import 'router/app_router.dart';
+import 'theme/app_theme.dart';
 
-void main() {
-  runApp(const StudyFlowApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final settings = AppSettingsProvider();
+  await settings.load();
+
+  final studyFlow = StudyFlowController();
+  await studyFlow.initialize();
+
+  final favourites = FavouritesProvider();
+  await favourites.load();
+
+  final router = createAppRouter();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AppSettingsProvider>.value(value: settings),
+        ChangeNotifierProvider<StudyFlowController>.value(value: studyFlow),
+        ChangeNotifierProvider<FavouritesProvider>.value(value: favourites),
+        ChangeNotifierProvider(create: (_) => PremiumController()),
+      ],
+      child: StudyFlowRoot(router: router),
+    ),
+  );
 }
 
-class StudyFlowApp extends StatefulWidget {
-  const StudyFlowApp({super.key});
+class StudyFlowRoot extends StatelessWidget {
+  final GoRouter router;
 
-  @override
-  State<StudyFlowApp> createState() => _StudyFlowAppState();
-}
-
-class _StudyFlowAppState extends State<StudyFlowApp> {
-  ThemeMode _themeMode = ThemeMode.dark;
-
-  void _changeTheme(ThemeMode mode) {
-    setState(() {
-      _themeMode = mode;
-    });
-  }
+  const StudyFlowRoot({super.key, required this.router});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'StudyFlow',
-      themeMode: _themeMode,
-      theme: _lightTheme(),
-      darkTheme: _darkTheme(),
-      home: HomeScreen(themeMode: _themeMode, onThemeChanged: _changeTheme),
+    final settings = context.watch<AppSettingsProvider>();
+
+    return PremiumScope(
+      controller: Provider.of<PremiumController>(context, listen: false),
+      child: MaterialApp.router(
+        debugShowCheckedModeBanner: false,
+        title: 'StudyFlow',
+        themeMode: settings.themeMode,
+        theme: buildLightTheme(),
+        darkTheme: buildDarkTheme(),
+        routerConfig: router,
+      ),
     );
   }
-}
-
-ThemeData _lightTheme() {
-  const primary = Color(0xFF7C3AED);
-
-  return ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.light,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: primary,
-      brightness: Brightness.light,
-    ),
-    scaffoldBackgroundColor: const Color(0xFFF5F7FB),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      surfaceTintColor: Colors.transparent,
-      centerTitle: true,
-      foregroundColor: Color(0xFF111827),
-    ),
-    drawerTheme: const DrawerThemeData(
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-    ),
-  );
-}
-
-ThemeData _darkTheme() {
-  const primary = Color(0xFF8B5CF6);
-
-  return ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.dark,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: primary,
-      brightness: Brightness.dark,
-    ),
-    scaffoldBackgroundColor: const Color(0xFF070B17),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      surfaceTintColor: Colors.transparent,
-      centerTitle: true,
-      foregroundColor: Colors.white,
-    ),
-    drawerTheme: const DrawerThemeData(
-      backgroundColor: Color(0xFF0C1224),
-      surfaceTintColor: Colors.transparent,
-    ),
-  );
 }

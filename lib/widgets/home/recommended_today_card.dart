@@ -83,7 +83,7 @@ class RecommendedTodayCard extends StatelessWidget {
           Text(
             todayPlanItem != null
                 ? '${todayPlanItem!.details}\nPlan: ${activePlan?.topic}'
-                : 'Set a topic and timeline below, then StudyFlow will build a day-by-day study plan for you.',
+                : 'Open the Study Planner from the menu to create a plan. StudyFlow will build a day-by-day schedule for you.',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,

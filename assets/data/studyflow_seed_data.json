@@ -1,0 +1,219 @@
+{
+  "subjects": [
+    "Math",
+    "SQL",
+    "Programming",
+    "UI Design",
+    "English"
+  ],
+  "learningTips": [
+    "Use active recall before rereading. Try to answer from memory first, then check your notes.",
+    "For harder subjects, study in short focused blocks and finish each block with one quick recap.",
+    "A premium study routine is simple: one clear goal, one distraction-free block, one short review.",
+    "When a task feels too big, break it into review, practice, and recap. Small wins reduce stress.",
+    "Track visible progress. A clear plan and a moving progress bar make it easier to stay consistent.",
+    "Do the most mentally difficult task first while your energy is still high."
+  ],
+  "eventSeeds": [
+    {
+      "title": "Database assignment submission",
+      "course": "SQL Basics",
+      "day": 2,
+      "color": "F97316"
+    },
+    {
+      "title": "UI workshop revision",
+      "course": "Mobile App Design",
+      "day": 4,
+      "color": "8B5CF6"
+    },
+    {
+      "title": "Math practice set",
+      "course": "Calculus",
+      "day": 9,
+      "color": "F97316"
+    },
+    {
+      "title": "Pair discussion meeting",
+      "course": "Communication Skills",
+      "day": 13,
+      "color": "EC4899"
+    },
+    {
+      "title": "Submit programming homework",
+      "course": "Programming",
+      "day": 18,
+      "color": "06B6D4"
+    },
+    {
+      "title": "Server lab checkpoint",
+      "course": "Server Technologies",
+      "day": 24,
+      "color": "F97316"
+    },
+    {
+      "title": "Security week review",
+      "course": "Cybersecurity",
+      "day": 26,
+      "color": "8B5CF6"
+    },
+    {
+      "title": "HTTPS practice task",
+      "course": "Web Services",
+      "day": 30,
+      "color": "F97316"
+    }
+  ],
+  "templates": {
+    "Math": [
+      {
+        "title": "Review key formulas",
+        "details": "Go through the main formulas and summary notes for 45 minutes."
+      },
+      {
+        "title": "Solve easy exercises",
+        "details": "Warm up with simple questions and focus on correct method."
+      },
+      {
+        "title": "Medium practice set",
+        "details": "Solve mixed problems without checking notes too early."
+      },
+      {
+        "title": "Fix weak areas",
+        "details": "Review mistakes and rewrite full correct solution steps."
+      },
+      {
+        "title": "Timed problem session",
+        "details": "Simulate a short test and manage time more carefully."
+      },
+      {
+        "title": "Formula recap",
+        "details": "Condense the important formulas into one clean review page."
+      },
+      {
+        "title": "Final revision",
+        "details": "Mix theory, formulas, and harder problems in one session."
+      }
+    ],
+    "SQL": [
+      {
+        "title": "Review SQL basics",
+        "details": "Study SELECT, WHERE, ORDER BY, and LIMIT with examples."
+      },
+      {
+        "title": "Filtering practice",
+        "details": "Write queries with conditions, sorting, and pattern matching."
+      },
+      {
+        "title": "Joins focus",
+        "details": "Practice INNER JOIN and LEFT JOIN on sample tables."
+      },
+      {
+        "title": "Aggregation day",
+        "details": "Use COUNT, AVG, SUM, GROUP BY, and HAVING in exercises."
+      },
+      {
+        "title": "Mini assignment",
+        "details": "Complete one realistic database task end to end."
+      },
+      {
+        "title": "Debug wrong queries",
+        "details": "Review failed queries and understand the logic behind fixes."
+      },
+      {
+        "title": "Final SQL recap",
+        "details": "Mix joins, filters, and aggregates in one focused review."
+      }
+    ],
+    "Programming": [
+      {
+        "title": "Core syntax review",
+        "details": "Refresh variables, conditions, functions, and basic structure."
+      },
+      {
+        "title": "Small coding tasks",
+        "details": "Solve short exercises and focus on readable code."
+      },
+      {
+        "title": "Loops and collections",
+        "details": "Practice iteration, lists, arrays, and common logic patterns."
+      },
+      {
+        "title": "Build one mini feature",
+        "details": "Turn a small idea into working code from start to finish."
+      },
+      {
+        "title": "Debugging session",
+        "details": "Find and fix errors slowly, one cause at a time."
+      },
+      {
+        "title": "Refactor session",
+        "details": "Clean naming, remove clutter, and improve code structure."
+      },
+      {
+        "title": "Final mixed challenge",
+        "details": "Combine several concepts in one realistic practice task."
+      }
+    ],
+    "UI Design": [
+      {
+        "title": "Layout principles",
+        "details": "Study spacing, alignment, and visual hierarchy in mobile UI."
+      },
+      {
+        "title": "Design inspiration review",
+        "details": "Analyze modern screens and note what feels premium."
+      },
+      {
+        "title": "Wireframe practice",
+        "details": "Sketch rough screens before thinking about colors."
+      },
+      {
+        "title": "Typography and color",
+        "details": "Focus on contrast, font scale, and cleaner visual rhythm."
+      },
+      {
+        "title": "Improve one screen",
+        "details": "Take one weak screen and redesign it more professionally."
+      },
+      {
+        "title": "Consistency check",
+        "details": "Unify buttons, cards, icons, spacing, and corner radius."
+      },
+      {
+        "title": "Final polish pass",
+        "details": "Review the whole interface and refine small details."
+      }
+    ],
+    "English": [
+      {
+        "title": "Vocabulary review",
+        "details": "Revise useful academic words and short examples."
+      },
+      {
+        "title": "Reading session",
+        "details": "Read an article and highlight difficult expressions."
+      },
+      {
+        "title": "Writing practice",
+        "details": "Write one paragraph and improve grammar and clarity."
+      },
+      {
+        "title": "Listening practice",
+        "details": "Listen to English content and summarize the main idea."
+      },
+      {
+        "title": "Speaking practice",
+        "details": "Explain a topic aloud and work on fluency."
+      },
+      {
+        "title": "Grammar focus",
+        "details": "Review one grammar topic and do short exercises."
+      },
+      {
+        "title": "Final recap",
+        "details": "Mix vocabulary, reading, and writing in one session."
+      }
+    ]
+  }
+}

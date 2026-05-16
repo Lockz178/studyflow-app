@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../premium/premium_scope.dart';
 import '../premium/premium_ui.dart';
+import '../providers/favourites_provider.dart';
+import '../validators/study_plan_validator.dart';
 
 enum PlannerFilter { all, active, completed, highPriority }
 
@@ -27,7 +30,8 @@ class PlannerPage extends StatefulWidget {
     required String topic,
     required String subject,
     required int totalDays,
-  }) onCreatePlan;
+  })
+  onCreatePlan;
 
   final Future<void> Function(dynamic plan) onOpenPlan; // StudyPlan
   final void Function(String planId) onDeletePlan;
@@ -45,7 +49,8 @@ class PlannerPage extends StatefulWidget {
   State<PlannerPage> createState() => _PlannerPageState();
 }
 
-class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStateMixin {
+class _PlannerPageState extends State<PlannerPage>
+    with SingleTickerProviderStateMixin {
   PlannerFilter _filter = PlannerFilter.all;
   late final TabController _tabController;
 
@@ -100,7 +105,10 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
     // Urgent: active plan with lowest progress.
     final active = widget.plans.where((p) => !p.isCompleted).toList();
     if (active.isEmpty) return null;
-    active.sort((a, b) => (a.progressValue as double).compareTo(b.progressValue as double));
+    active.sort(
+      (a, b) =>
+          (a.progressValue as double).compareTo(b.progressValue as double),
+    );
     return active.first;
   }
 
@@ -108,7 +116,10 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
     // Falling behind: high priority plan if any.
     final hp = widget.plans.where((p) => _isHighPriority(p)).toList();
     if (hp.isEmpty) return null;
-    hp.sort((a, b) => (a.progressValue as double).compareTo(b.progressValue as double));
+    hp.sort(
+      (a, b) =>
+          (a.progressValue as double).compareTo(b.progressValue as double),
+    );
     return hp.first;
   }
 
@@ -116,9 +127,11 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
 
   int _completedPlansCount() => widget.plans.where((p) => p.isCompleted).length;
 
-  int _completedDaysCount() => widget.plans.fold<int>(0, (sum, p) => sum + (p.completedCount as int));
+  int _completedDaysCount() =>
+      widget.plans.fold<int>(0, (sum, p) => sum + (p.completedCount as int));
 
-  int _totalDaysCount() => widget.plans.fold<int>(0, (sum, p) => sum + (p.items.length as int));
+  int _totalDaysCount() =>
+      widget.plans.fold<int>(0, (sum, p) => sum + (p.items.length as int));
 
   String _todayTargetText() {
     final suggested = _suggestedPlan();
@@ -157,134 +170,47 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
   }
 
   Future<void> _openCreatePlanSheet({PlannerTemplate? template}) async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = Theme.of(context).colorScheme.onSurface;
-    final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
-
-    final topicController = TextEditingController(text: template?.title ?? '');
-    String subject = template?.subject ?? (widget.subjects.isNotEmpty ? widget.subjects.first : 'Math');
-    double days = (template?.days ?? 7).toDouble();
-
-    await showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      backgroundColor: isDark ? const Color(0xFF10172A) : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+    final result = await Navigator.of(context).push<Map<String, Object>>(
+      MaterialPageRoute(
+        builder: (_) =>
+            _CreateStudyPlanPage(subjects: widget.subjects, template: template),
       ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                template == null ? 'Create a Study Plan' : 'Create from template',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: textPrimary,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Keep it simple. You can edit progress any time.',
-                style: TextStyle(fontSize: 13, color: textSecondary),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: topicController,
-                decoration: _inputDecoration(context, 'Topic / assignment name'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: subject,
-                decoration: _inputDecoration(context, 'Subject'),
-                items: widget.subjects
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (v) {
-                  if (v == null) return;
-                  subject = v;
-                },
-              ),
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Days to finish',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: textPrimary,
-                    ),
-                  ),
-                  Text(
-                    '${days.round()} days',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF7C3AED),
-                    ),
-                  ),
-                ],
-              ),
-              Slider(
-                value: days,
-                min: 3,
-                max: 14,
-                divisions: 11,
-                activeColor: const Color(0xFF7C3AED),
-                onChanged: (v) => setState(() => days = v),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    final raw = topicController.text.trim();
-                    final topic = raw.isEmpty ? subject : raw;
-                    widget.onCreatePlan(topic: topic, subject: subject, totalDays: days.round());
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(this.context).showSnackBar(
-                      SnackBar(
-                        content: Text('Created study plan for $topic'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.add_task_rounded),
-                  label: const Text('Create plan'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF111827),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
 
-    topicController.dispose();
+    if (result == null || !mounted) return;
+
+    final topic = result['topic'] as String;
+    final subject = result['subject'] as String;
+    final totalDays = result['totalDays'] as int;
+
+    widget.onCreatePlan(topic: topic, subject: subject, totalDays: totalDays);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Created study plan for $topic'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surface = isDark ? const Color(0xFF0F162A) : Colors.white;
-    final surfaceSoft = isDark ? const Color(0xFF161F36) : const Color(0xFFF8FAFC);
+    final surfaceSoft = isDark
+        ? const Color(0xFF161F36)
+        : const Color(0xFFF8FAFC);
     final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
+
+    final fav = context.watch<FavouritesProvider>();
 
     final activePlans = _activePlansCount();
     final completedPlans = _completedPlansCount();
     final completedDays = _completedDaysCount();
     final totalDays = _totalDaysCount();
-    final overallPercent = totalDays == 0 ? 0 : ((completedDays / totalDays) * 100).round();
+    final overallPercent = totalDays == 0
+        ? 0
+        : ((completedDays / totalDays) * 100).round();
 
     final filtered = _filteredPlans();
     final suggested = _suggestedPlan();
@@ -329,12 +255,32 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
           ),
           const SizedBox(height: 10),
           if (widget.plans.isEmpty)
-            _EmptyCard(
-              surfaceSoft: surfaceSoft,
-              title: 'No study plans yet',
-              subtitle: 'Create your first plan and let StudyFlow break it down for you.',
-              cta: 'Create your first plan',
-              onTap: () => _openCreatePlanSheet(),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: surfaceSoft,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'No study plans yet',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Use the purple + New plan button to create your first study plan.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             )
           else
             Column(
@@ -343,6 +289,8 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
                   _SmartPlanCard(
                     surface: surface,
                     label: 'Suggested focus',
+                    insight:
+                        'Your first active plan — a simple “what should I open next?” suggestion.',
                     plan: suggested,
                     accent: const Color(0xFF8B5CF6),
                     onTap: () => widget.onOpenPlan(suggested),
@@ -352,6 +300,8 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
                   _SmartPlanCard(
                     surface: surface,
                     label: 'Most urgent',
+                    insight:
+                        'Among active plans, the one with the lowest overall progress — worth tackling soon.',
                     plan: urgent,
                     accent: const Color(0xFFF97316),
                     onTap: () => widget.onOpenPlan(urgent),
@@ -361,7 +311,8 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
                   const SizedBox(height: 12),
                   PremiumGate(
                     title: 'Adaptive catch-up plan',
-                    subtitle: 'Premium: rebuild remaining days if you miss sessions.',
+                    subtitle:
+                        'Premium: rebuild remaining days if you miss sessions.',
                     lockedChild: _PremiumFeatureCard(
                       surface: surface,
                       title: 'Catch-up planner',
@@ -371,7 +322,8 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
                     child: _PremiumFeatureCard(
                       surface: surface,
                       title: 'Catch-up planner',
-                      subtitle: 'Rebuild the remaining plan days realistically.',
+                      subtitle:
+                          'Rebuild the remaining plan days realistically.',
                       icon: Icons.auto_awesome_rounded,
                     ),
                   ),
@@ -413,12 +365,32 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
           ),
           const SizedBox(height: 12),
           if (filtered.isEmpty)
-            _EmptyCard(
-              surfaceSoft: surfaceSoft,
-              title: 'Nothing here yet',
-              subtitle: 'Try a different filter or create a new plan.',
-              cta: 'Create a plan',
-              onTap: () => _openCreatePlanSheet(),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: surfaceSoft,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Nothing here yet',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Use the purple + New plan button to create a study plan.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             )
           else
             ...filtered.map(
@@ -429,6 +401,8 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
                   plan: plan,
                   onOpen: () => widget.onOpenPlan(plan),
                   onDelete: () => widget.onDeletePlan(plan.id),
+                  isFavorite: fav.isFavorite(plan.id),
+                  onToggleFavorite: () => fav.toggle(plan.id),
                 ),
               ),
             ),
@@ -458,7 +432,7 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
                   surface: surface,
                   template: template,
                   locked: false,
-                  onTap: () => _openCreatePlanSheet(template: template),
+                  onTap: () => showUpgradeBottomSheet(context),
                 ),
               ),
             ),
@@ -474,28 +448,6 @@ class _PlannerPageState extends State<PlannerPage> with SingleTickerProviderStat
       ),
     );
   }
-}
-
-InputDecoration _inputDecoration(BuildContext context, String label) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-
-  return InputDecoration(
-    labelText: label,
-    filled: true,
-    fillColor: isDark ? const Color(0xFF171F33) : const Color(0xFFF8FAFC),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(20),
-      borderSide: BorderSide(
-        color: isDark ? const Color(0xFF27304B) : const Color(0xFFE5E7EB),
-      ),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(20),
-      borderSide: BorderSide(
-        color: isDark ? const Color(0xFF27304B) : const Color(0xFFE5E7EB),
-      ),
-    ),
-  );
 }
 
 class _HeroStats extends StatelessWidget {
@@ -549,24 +501,15 @@ class _HeroStats extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _Stat(
-                  label: 'Active',
-                  value: '$activePlans',
-                ),
+                child: _Stat(label: 'Active', value: '$activePlans'),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _Stat(
-                  label: 'Completed',
-                  value: '$completedPlans',
-                ),
+                child: _Stat(label: 'Completed', value: '$completedPlans'),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _Stat(
-                  label: 'Days done',
-                  value: '$completedDays',
-                ),
+                child: _Stat(label: 'Days done', value: '$completedDays'),
               ),
             ],
           ),
@@ -672,7 +615,11 @@ class _Stat extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700),
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -724,71 +671,21 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _EmptyCard extends StatelessWidget {
-  final Color surfaceSoft;
-  final String title;
-  final String subtitle;
-  final String cta;
-  final VoidCallback onTap;
-
-  const _EmptyCard({
-    required this.surfaceSoft,
-    required this.title,
-    required this.subtitle,
-    required this.cta,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textPrimary = Theme.of(context).colorScheme.onSurface;
-    final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: surfaceSoft,
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: textPrimary),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 13, color: textSecondary, height: 1.4),
-          ),
-          const SizedBox(height: 14),
-          FilledButton(
-            onPressed: onTap,
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF111827),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            ),
-            child: Text(cta),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _PlanOverviewCard extends StatelessWidget {
   final Color surface;
   final dynamic plan;
   final VoidCallback onOpen;
   final VoidCallback onDelete;
+  final bool isFavorite;
+  final VoidCallback onToggleFavorite;
 
   const _PlanOverviewCard({
     required this.surface,
     required this.plan,
     required this.onOpen,
     required this.onDelete,
+    required this.isFavorite,
+    required this.onToggleFavorite,
   });
 
   @override
@@ -798,7 +695,9 @@ class _PlanOverviewCard extends StatelessWidget {
     final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
 
     final next = plan.nextIncomplete;
-    final nextText = next == null ? 'No next task' : 'Next: Day ${next.day} — ${next.title}';
+    final nextText = next == null
+        ? 'No next task'
+        : 'Next: Day ${next.day} — ${next.title}';
 
     return InkWell(
       onTap: onOpen,
@@ -815,7 +714,9 @@ class _PlanOverviewCard extends StatelessWidget {
               offset: const Offset(0, 8),
             ),
           ],
-          border: Border.all(color: isDark ? const Color(0xFF25304B) : const Color(0xFFE5E7EB)),
+          border: Border.all(
+            color: isDark ? const Color(0xFF25304B) : const Color(0xFFE5E7EB),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -833,9 +734,26 @@ class _PlanOverviewCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
+                  tooltip: isFavorite
+                      ? 'Remove from favourites'
+                      : 'Add to favourites',
+                  onPressed: onToggleFavorite,
+                  icon: Icon(
+                    isFavorite
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    color: isFavorite
+                        ? const Color(0xFFFBBF24)
+                        : textSecondary,
+                  ),
+                ),
+                IconButton(
                   tooltip: 'Delete plan',
                   onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFEF4444)),
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Color(0xFFEF4444),
+                  ),
                 ),
               ],
             ),
@@ -854,7 +772,9 @@ class _PlanOverviewCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: plan.progressValue,
                 minHeight: 10,
-                backgroundColor: isDark ? const Color(0xFF25304B) : const Color(0xFFE5E7EB),
+                backgroundColor: isDark
+                    ? const Color(0xFF25304B)
+                    : const Color(0xFFE5E7EB),
                 valueColor: const AlwaysStoppedAnimation(Color(0xFF7C3AED)),
               ),
             ),
@@ -867,14 +787,23 @@ class _PlanOverviewCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: (plan.isCompleted ? const Color(0xFF10B981) : const Color(0xFF8B5CF6))
-                        .withAlpha(18),
+                    color:
+                        (plan.isCompleted
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFF8B5CF6))
+                            .withAlpha(18),
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(
-                      color: (plan.isCompleted ? const Color(0xFF10B981) : const Color(0xFF8B5CF6))
-                          .withAlpha(90),
+                      color:
+                          (plan.isCompleted
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFF8B5CF6))
+                              .withAlpha(90),
                     ),
                   ),
                   child: Text(
@@ -883,7 +812,9 @@ class _PlanOverviewCard extends StatelessWidget {
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.5,
-                      color: plan.isCompleted ? const Color(0xFF10B981) : const Color(0xFF8B5CF6),
+                      color: plan.isCompleted
+                          ? const Color(0xFF10B981)
+                          : const Color(0xFF8B5CF6),
                     ),
                   ),
                 ),
@@ -894,7 +825,11 @@ class _PlanOverviewCard extends StatelessWidget {
               nextText,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: textSecondary),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: textSecondary,
+              ),
             ),
           ],
         ),
@@ -906,6 +841,7 @@ class _PlanOverviewCard extends StatelessWidget {
 class _SmartPlanCard extends StatelessWidget {
   final Color surface;
   final String label;
+  final String? insight;
   final dynamic plan;
   final Color accent;
   final VoidCallback onTap;
@@ -913,6 +849,7 @@ class _SmartPlanCard extends StatelessWidget {
   const _SmartPlanCard({
     required this.surface,
     required this.label,
+    this.insight,
     required this.plan,
     required this.accent,
     required this.onTap,
@@ -925,7 +862,9 @@ class _SmartPlanCard extends StatelessWidget {
     final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
 
     final next = plan.nextIncomplete;
-    final nextLine = next == null ? 'No next task' : 'Next: Day ${next.day} — ${next.title}';
+    final nextLine = next == null
+        ? 'No next task'
+        : 'Next: Day ${next.day} — ${next.title}';
 
     return InkWell(
       onTap: onTap,
@@ -963,7 +902,10 @@ class _SmartPlanCard extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: accent.withAlpha(18),
                           borderRadius: BorderRadius.circular(999),
@@ -989,17 +931,36 @@ class _SmartPlanCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (insight != null) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      insight!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.3,
+                        color: textSecondary.withAlpha(200),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Text(
                     plan.topic,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: textPrimary),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     nextLine,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13, color: textSecondary, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -1073,21 +1034,39 @@ class _TemplateCard extends StatelessWidget {
                 children: [
                   Text(
                     template.title,
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: textPrimary),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     template.subtitle,
-                    style: TextStyle(fontSize: 13, color: textSecondary, height: 1.35),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: textSecondary,
+                      height: 1.35,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _MiniTag(label: template.subject, color: const Color(0xFF8B5CF6)),
-                      _MiniTag(label: '${template.days} days', color: const Color(0xFF06B6D4)),
-                      if (locked) _MiniTag(label: 'Premium', color: const Color(0xFFF97316)),
+                      _MiniTag(
+                        label: template.subject,
+                        color: const Color(0xFF8B5CF6),
+                      ),
+                      _MiniTag(
+                        label: '${template.days} days',
+                        color: const Color(0xFF06B6D4),
+                      ),
+                      if (locked)
+                        _MiniTag(
+                          label: 'Premium',
+                          color: const Color(0xFFF97316),
+                        ),
                     ],
                   ),
                 ],
@@ -1184,12 +1163,20 @@ class _PremiumFeatureCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: textPrimary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    color: textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 13, color: textSecondary, height: 1.35),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: textSecondary,
+                    height: 1.35,
+                  ),
                 ),
               ],
             ),
@@ -1201,3 +1188,146 @@ class _PremiumFeatureCard extends StatelessWidget {
   }
 }
 
+class _CreateStudyPlanPage extends StatefulWidget {
+  final List<String> subjects;
+  final PlannerTemplate? template;
+
+  const _CreateStudyPlanPage({required this.subjects, this.template});
+
+  @override
+  State<_CreateStudyPlanPage> createState() => _CreateStudyPlanPageState();
+}
+
+class _CreateStudyPlanPageState extends State<_CreateStudyPlanPage> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _topicController;
+  late String _subject;
+  late double _days;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _topicController = TextEditingController(
+      text: widget.template?.title ?? '',
+    );
+
+    _subject =
+        widget.template?.subject ??
+        (widget.subjects.isNotEmpty ? widget.subjects.first : 'Math');
+
+    _days = (widget.template?.days ?? 7).toDouble();
+  }
+
+  @override
+  void dispose() {
+    _topicController.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _decoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
+    );
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+
+    Navigator.of(context).pop({
+      'topic': _topicController.text.trim(),
+      'subject': _subject,
+      'totalDays': _days.round(),
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Create Study Plan')),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(
+              'Plan your study work',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Choose what you want to study and how many days StudyFlow should divide it into.',
+              style: TextStyle(color: textSecondary),
+            ),
+            const SizedBox(height: 24),
+            TextFormField(
+              controller: _topicController,
+              decoration: _decoration('Topic or assignment name'),
+              validator: (value) => validateStudyPlanTopic(value ?? ''),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              initialValue: _subject,
+              decoration: _decoration('Subject'),
+              items: widget.subjects
+                  .map(
+                    (subject) =>
+                        DropdownMenuItem(value: subject, child: Text(subject)),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() {
+                  _subject = value;
+                });
+              },
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Days to finish',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+                Text(
+                  '${_days.round()} days',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF7C3AED),
+                  ),
+                ),
+              ],
+            ),
+            Slider(
+              value: _days,
+              min: 3,
+              max: 14,
+              divisions: 11,
+              activeColor: const Color(0xFF7C3AED),
+              onChanged: (value) {
+                setState(() {
+                  _days = value;
+                });
+              },
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _submit,
+              icon: const Icon(Icons.add_task_rounded),
+              label: const Text('Create study plan'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

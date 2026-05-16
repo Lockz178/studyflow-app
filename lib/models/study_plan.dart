@@ -34,4 +34,26 @@ class StudyPlan {
     }
     return items.isNotEmpty ? items.first : null;
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'topic': topic,
+    'subject': subject,
+    'totalDays': totalDays,
+    'createdAt': createdAt.toIso8601String(),
+    'completionCelebrated': completionCelebrated,
+    'items': items.map((e) => e.toJson()).toList(),
+  };
+
+  factory StudyPlan.fromJson(Map<String, dynamic> json) => StudyPlan(
+    id: json['id'] as String,
+    topic: json['topic'] as String,
+    subject: json['subject'] as String,
+    totalDays: json['totalDays'] as int,
+    createdAt: DateTime.parse(json['createdAt'] as String),
+    items: (json['items'] as List<dynamic>)
+        .map((e) => PlanItem.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    completionCelebrated: json['completionCelebrated'] as bool? ?? false,
+  );
 }

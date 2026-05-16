@@ -4,9 +4,11 @@ class AppDrawer extends StatelessWidget {
   final VoidCallback onOpenDashboard;
   final VoidCallback onOpenSchedule;
   final VoidCallback onOpenPlanner;
+  final VoidCallback onOpenTips;
   final VoidCallback onOpenFavourites;
   final VoidCallback onOpenProgress;
   final VoidCallback onOpenSettings;
+  final VoidCallback onOpenAbout;
   final VoidCallback onOpenHelp;
 
   const AppDrawer({
@@ -14,9 +16,11 @@ class AppDrawer extends StatelessWidget {
     required this.onOpenDashboard,
     required this.onOpenSchedule,
     required this.onOpenPlanner,
+    required this.onOpenTips,
     required this.onOpenFavourites,
     required this.onOpenProgress,
     required this.onOpenSettings,
+    required this.onOpenAbout,
     required this.onOpenHelp,
   });
 
@@ -104,6 +108,11 @@ class AppDrawer extends StatelessWidget {
                     onTap: onOpenPlanner,
                   ),
                   _DrawerItem(
+                    icon: Icons.library_books_rounded,
+                    title: 'Tips library',
+                    onTap: onOpenTips,
+                  ),
+                  _DrawerItem(
                     icon: Icons.favorite_rounded,
                     title: 'Favourites',
                     onTap: onOpenFavourites,
@@ -117,6 +126,11 @@ class AppDrawer extends StatelessWidget {
                     icon: Icons.settings_rounded,
                     title: 'Settings',
                     onTap: onOpenSettings,
+                  ),
+                  _DrawerItem(
+                    icon: Icons.info_outline_rounded,
+                    title: 'About',
+                    onTap: onOpenAbout,
                   ),
                   _DrawerItem(
                     icon: Icons.help_center_rounded,

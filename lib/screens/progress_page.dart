@@ -1,7 +1,9 @@
+import '../providers/favourites_provider.dart';
 import '../models/study_plan.dart';
 import '../widgets/study_plan_card.dart';
-import 'plan_detail_page.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class ProgressPage extends StatefulWidget {
   final List<StudyPlan> plans;
@@ -15,23 +17,14 @@ class ProgressPage extends StatefulWidget {
 
 class _ProgressPageState extends State<ProgressPage> {
   Future<void> _openPlan(StudyPlan plan) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PlanDetailPage(
-          plan: plan,
-          onDeletePlan: widget.onDeletePlan == null
-              ? null
-              : () => widget.onDeletePlan!(plan.id),
-        ),
-      ),
-    );
-
+    await context.push('/plan/${plan.id}', extra: plan);
     if (!mounted) return;
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
+    final fav = context.watch<FavouritesProvider>();
     final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
     final completedPlanList = widget.plans
         .where((plan) => plan.isCompleted)
@@ -110,10 +103,15 @@ class _ProgressPageState extends State<ProgressPage> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: StudyPlanCard(
                   plan: plan,
+                  isFavorite: fav.isFavorite(plan.id),
+                  onToggleFavorite: () => fav.toggle(plan.id),
                   onTap: () => _openPlan(plan),
                   onDelete: widget.onDeletePlan == null
                       ? null
-                      : () => widget.onDeletePlan!(plan.id),
+                      : () {
+                          widget.onDeletePlan!(plan.id);
+                          fav.remove(plan.id);
+                        },
                 ),
               ),
             ),

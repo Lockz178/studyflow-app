@@ -1,30 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-class SettingsScreen extends StatefulWidget {
-  final ThemeMode currentThemeMode;
-  final ValueChanged<ThemeMode> onThemeChanged;
+import '../providers/app_settings_provider.dart';
 
-  const SettingsScreen({
-    super.key,
-    required this.currentThemeMode,
-    required this.onThemeChanged,
-  });
-
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool notificationsEnabled = true;
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<AppSettingsProvider>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surface = isDark ? const Color(0xFF0F162A) : Colors.white;
     final textPrimary = Theme.of(context).colorScheme.onSurface;
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => context.pop(),
+        ),
         title: const Text(
           'Settings',
           style: TextStyle(fontWeight: FontWeight.w900),
@@ -48,14 +43,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               borderRadius: BorderRadius.circular(24),
             ),
             child: RadioGroup<ThemeMode>(
-              groupValue: widget.currentThemeMode,
+              groupValue: settings.themeMode,
               onChanged: (value) {
                 if (value == null) return;
-                widget.onThemeChanged(value);
-                setState(() {});
+                settings.setThemeMode(value);
               },
               child: const Column(
                 children: [
+                  RadioListTile<ThemeMode>(
+                    value: ThemeMode.system,
+                    title: Text('Use device theme'),
+                    subtitle: Text('Follow system light or dark mode'),
+                  ),
                   RadioListTile<ThemeMode>(
                     value: ThemeMode.light,
                     title: Text('Light mode'),
@@ -86,16 +85,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 SwitchListTile(
-                  value: notificationsEnabled,
+                  value: settings.notificationsEnabled,
                   title: const Text('Notifications'),
                   subtitle: const Text(
                     'Remind me about deadlines and study tasks',
                   ),
-                  onChanged: (value) {
-                    setState(() {
-                      notificationsEnabled = value;
-                    });
-                  },
+                  onChanged: (value) => settings.setNotificationsEnabled(value),
                 ),
                 const ListTile(
                   title: Text('Version'),
