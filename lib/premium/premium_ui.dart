@@ -52,6 +52,7 @@ class PremiumBadge extends StatelessWidget {
 Future<void> showUpgradeBottomSheet(BuildContext context) async {
   await showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     showDragHandle: true,
     useSafeArea: true,
     backgroundColor: Theme.of(context).brightness == Brightness.dark
@@ -70,6 +71,7 @@ class PremiumGate extends StatelessWidget {
   final Widget child;
   final Widget? lockedChild;
   final bool enabled;
+  final double lockedMinHeight;
 
   const PremiumGate({
     super.key,
@@ -78,6 +80,7 @@ class PremiumGate extends StatelessWidget {
     required this.child,
     this.lockedChild,
     this.enabled = true,
+    this.lockedMinHeight = 190,
   });
 
   @override
@@ -87,99 +90,112 @@ class PremiumGate extends StatelessWidget {
 
     if (!isLocked) return child;
 
-    return Stack(
-      children: [
-        lockedChild ?? child,
-        Positioned.fill(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Material(
-              color: Colors.black.withAlpha(35),
-              child: InkWell(
-                onTap: () => showUpgradeBottomSheet(context),
-                child: Center(
-                  child: Container(
-                    margin: const EdgeInsets.all(18),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFF0F162A).withAlpha(220)
-                          : Colors.white.withAlpha(240),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(
-                        color: const Color(0xFF8B5CF6).withAlpha(120),
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: lockedMinHeight),
+      child: Stack(
+        children: [
+          lockedChild ?? child,
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Material(
+                color: Colors.black.withAlpha(35),
+                child: InkWell(
+                  onTap: () => showUpgradeBottomSheet(context),
+                  child: Center(
+                    child: Container(
+                      margin: const EdgeInsets.all(18),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF0F162A).withAlpha(220)
+                            : Colors.white.withAlpha(240),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: const Color(0xFF8B5CF6).withAlpha(120),
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF8B5CF6).withAlpha(25),
-                            borderRadius: BorderRadius.circular(16),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF8B5CF6).withAlpha(25),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(
+                              Icons.lock_rounded,
+                              color: Color(0xFF8B5CF6),
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.lock_rounded,
-                            color: Color(0xFF8B5CF6),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Flexible(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 16,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 16,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                subtitle,
-                                style: TextStyle(
-                                  height: 1.35,
-                                  fontSize: 13,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                const SizedBox(height: 4),
+                                Text(
+                                  subtitle,
+                                  style: TextStyle(
+                                    height: 1.35,
+                                    fontSize: 13,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  FilledButton.icon(
-                                    onPressed: () => showUpgradeBottomSheet(context),
-                                    icon: const Icon(Icons.workspace_premium_rounded),
-                                    label: const Text('Upgrade'),
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor: const Color(0xFF7C3AED),
-                                      foregroundColor: Colors.white,
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 10,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    FilledButton.icon(
+                                      onPressed: () =>
+                                          showUpgradeBottomSheet(context),
+                                      icon: const Icon(
+                                        Icons.workspace_premium_rounded,
+                                      ),
+                                      label: const Text('Upgrade'),
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: const Color(
+                                          0xFF7C3AED,
+                                        ),
+                                        foregroundColor: Colors.white,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  TextButton(
-                                    onPressed: () {},
-                                    child: const Text('Not now'),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                    TextButton(
+                                      onPressed: () {},
+                                      child: const Text('Not now'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -194,12 +210,16 @@ class _UpgradeSheet extends StatelessWidget {
     final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
     final controller = PremiumScope.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.82,
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Row(
             children: [
               Container(
@@ -315,7 +335,8 @@ class _UpgradeSheet extends StatelessWidget {
             'No real billing yet. This is a local test toggle.',
             style: TextStyle(fontSize: 12, color: textSecondary),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -369,4 +390,3 @@ class _FeatureRow extends StatelessWidget {
     );
   }
 }
-
