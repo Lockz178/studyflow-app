@@ -68,6 +68,23 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 22),
           Text(
+            'App preview',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: Image.asset(
+              'assets/screenshots/dashboard_dark.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: 22),
+          Text(
             'Author',
             style: TextStyle(
               fontSize: 18,

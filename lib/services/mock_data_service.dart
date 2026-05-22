@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../models/plan_template.dart';
 import '../models/study_event.dart';
+import 'database_service.dart';
 
 class MockDataService {
   static List<String> subjects = [
@@ -51,10 +51,38 @@ class MockDataService {
   static Future<void> loadFromAssets() async {
     if (_loaded) return;
 
-    final jsonString = await rootBundle.loadString(
-      'assets/data/studyflow_seed_data.json',
-    );
-    loadFromJsonString(jsonString);
+    final db = DatabaseService.instance;
+    await db.init();
+
+    subjects = await db.getSubjects();
+    learningTips = await db.getLearningTips();
+
+    final eventRows = await db.getEventSeeds();
+    _eventSeeds = eventRows
+        .map(
+          (r) => _EventSeed(
+            title: r['title'] as String,
+            course: r['course'] as String,
+            day: r['day'] as int,
+            color: _colorFromHex(r['color'] as String),
+          ),
+        )
+        .toList();
+
+    _templatesBySubject = {};
+    for (final subject in subjects) {
+      final rows = await db.getTemplatesForSubject(subject);
+      _templatesBySubject[subject] = rows
+          .map(
+            (r) => PlanTemplate(
+              title: r['title'] as String,
+              details: r['details'] as String,
+            ),
+          )
+          .toList();
+    }
+
+    _loaded = true;
   }
 
   static void loadFromJsonString(String jsonString) {
