@@ -146,7 +146,7 @@ class PremiumGate extends StatelessWidget {
                                     ).colorScheme.onSurface,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 2),
                                 Text(
                                   subtitle,
                                   style: TextStyle(
@@ -157,7 +157,7 @@ class PremiumGate extends StatelessWidget {
                                     ).colorScheme.onSurfaceVariant,
                                   ),
                                 ),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 8),
                                 Wrap(
                                   spacing: 10,
                                   runSpacing: 4,
