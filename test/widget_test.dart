@@ -9,8 +9,26 @@ import 'package:studyflow_app/providers/app_settings_provider.dart';
 import 'package:studyflow_app/providers/favourites_provider.dart';
 import 'package:studyflow_app/providers/study_flow_controller.dart';
 import 'package:studyflow_app/router/app_router.dart';
+import 'package:studyflow_app/services/mock_data_service.dart';
+
+const _minimalSeed = '''
+{
+  "subjects": ["Math", "English"],
+  "learningTips": ["Study hard every day."],
+  "eventSeeds": [],
+  "templates": {
+    "Math": [{ "title": "Review", "details": "Go through notes." }],
+    "English": [{ "title": "Read", "details": "Read a chapter." }]
+  }
+}
+''';
 
 void main() {
+  setUp(() {
+    MockDataService.reset();
+    MockDataService.loadFromJsonString(_minimalSeed);
+  });
+
   Future<GoRouter> pumpApp(WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
 
