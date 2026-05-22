@@ -210,13 +210,9 @@ class _UpgradeSheet extends StatelessWidget {
     final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
     final controller = PremiumScope.of(context);
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.82,
-      ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
-        child: Column(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+      child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -337,7 +333,6 @@ class _UpgradeSheet extends StatelessWidget {
           ),
           ],
         ),
-      ),
     );
   }
 }
