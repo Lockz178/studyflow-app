@@ -80,7 +80,7 @@ class PremiumGate extends StatelessWidget {
     required this.child,
     this.lockedChild,
     this.enabled = true,
-    this.lockedMinHeight = 190,
+    this.lockedMinHeight = 220,
   });
 
   @override
@@ -104,8 +104,14 @@ class PremiumGate extends StatelessWidget {
                   onTap: () => showUpgradeBottomSheet(context),
                   child: Center(
                     child: Container(
-                      margin: const EdgeInsets.all(18),
-                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 14,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).brightness == Brightness.dark
                             ? const Color(0xFF0F162A).withAlpha(220)
