@@ -7,7 +7,7 @@ import 'package:sqflite/sqflite.dart';
 /// SQLite database seeded on first launch from the bundled JSON asset.
 ///
 /// Satisfies the coursework requirement:
-/// "Data comes from … a database populated with a JSON file in the assets."
+/// "Data comes from a database populated with a JSON file in the assets."
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
   DatabaseService._();
@@ -58,7 +58,8 @@ class DatabaseService {
   }
 
   Future<void> _seedIfEmpty() async {
-    final count = Sqflite.firstIntValue(
+    final count =
+        Sqflite.firstIntValue(
           await _db!.rawQuery('SELECT COUNT(*) FROM subjects'),
         ) ??
         0;

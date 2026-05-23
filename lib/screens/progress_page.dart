@@ -72,7 +72,7 @@ class _ProgressPageState extends State<ProgressPage> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  '$completedPlans completed plan${completedPlans == 1 ? '' : 's'} • $completedDays days done',
+                  '$completedPlans completed plan${completedPlans == 1 ? '' : 's'} - $completedDays days done',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 24,

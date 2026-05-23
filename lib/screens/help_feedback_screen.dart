@@ -35,10 +35,7 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
 
   Future<void> _openMailto(String body) async {
     final uri = Uri.parse(
-      'mailto:$kSupportEmail?${_encodeQuery({
-        'subject': '[StudyFlow] Feedback',
-        'body': body,
-      })}',
+      'mailto:$kSupportEmail?${_encodeQuery({'subject': '[StudyFlow] Feedback', 'body': body})}',
     );
 
     setState(() => _sending = true);
@@ -135,7 +132,11 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
           children: [
             Text(
               'Quick answers, shortcuts, and a way to send feedback.',
-              style: TextStyle(fontSize: 14, height: 1.45, color: textSecondary),
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.45,
+                color: textSecondary,
+              ),
             ),
             const SizedBox(height: 18),
             _SectionTitle(text: 'Getting started', color: textPrimary),
@@ -176,9 +177,9 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
             _SectionTitle(text: 'FAQ', color: textPrimary),
             const SizedBox(height: 10),
             _FaqTile(
-              question: 'What do “Suggested focus” and “Most urgent” mean?',
+              question: 'What do "Suggested focus" and "Most urgent" mean?',
               answer:
-                  'Suggested focus is simply your first active plan—a sensible default for “what should I open next?”. '
+                  'Suggested focus is simply your first active plan - a sensible default for "what should I open next?". '
                   'Most urgent looks at active plans only and picks the one with the lowest progress bar, '
                   'to highlight where you may be falling behind.',
             ),
@@ -192,7 +193,7 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
             _FaqTile(
               question: 'How do Premium templates work?',
               answer:
-                  'Template cards are gated behind Premium—tap upgrade on the planner to see the flow. '
+                  'Template cards are gated behind Premium - tap upgrade on the planner to see the flow. '
                   'Your free plans still work fully with + New plan.',
             ),
             const SizedBox(height: 22),
@@ -259,7 +260,7 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
             FilledButton.icon(
               onPressed: _sending ? null : _submitFeedback,
               icon: const Icon(Icons.send_rounded),
-              label: Text(_sending ? 'Opening…' : 'Send with email app'),
+              label: Text(_sending ? 'Opening...' : 'Send with email app'),
             ),
           ],
         ),
@@ -278,11 +279,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w900,
-        color: color,
-      ),
+      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: color),
     );
   }
 }

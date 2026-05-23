@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/study_plan.dart';
 import '../premium/premium_scope.dart';
 import '../premium/premium_ui.dart';
 import '../providers/favourites_provider.dart';
@@ -23,7 +24,7 @@ class PlannerTemplate {
 }
 
 class PlannerPage extends StatefulWidget {
-  final List<dynamic> plans; // expects List<StudyPlan>
+  final List<StudyPlan> plans;
   final List<String> subjects;
 
   final void Function({
@@ -33,7 +34,7 @@ class PlannerPage extends StatefulWidget {
   })
   onCreatePlan;
 
-  final Future<void> Function(dynamic plan) onOpenPlan; // StudyPlan
+  final Future<void> Function(StudyPlan plan) onOpenPlan;
   final void Function(String planId) onDeletePlan;
 
   const PlannerPage({
@@ -72,7 +73,7 @@ class _PlannerPageState extends State<PlannerPage>
     super.dispose();
   }
 
-  List<dynamic> _filteredPlans() {
+  List<StudyPlan> _filteredPlans() {
     final plans = widget.plans;
     switch (_filter) {
       case PlannerFilter.all:
@@ -86,14 +87,13 @@ class _PlannerPageState extends State<PlannerPage>
     }
   }
 
-  bool _isHighPriority(dynamic plan) {
-    // Heuristic: active + low progress.
+  bool _isHighPriority(StudyPlan plan) {
+    // Heuristic: active plus low progress.
     if (plan.isCompleted) return false;
-    final progress = plan.progressValue as double? ?? 0;
-    return progress < 0.35;
+    return plan.progressValue < 0.35;
   }
 
-  dynamic _suggestedPlan() {
+  StudyPlan? _suggestedPlan() {
     // Suggested: first active plan; fallback to newest plan.
     for (final p in widget.plans) {
       if (!p.isCompleted) return p;
@@ -101,25 +101,19 @@ class _PlannerPageState extends State<PlannerPage>
     return widget.plans.isNotEmpty ? widget.plans.first : null;
   }
 
-  dynamic _mostUrgentPlan() {
+  StudyPlan? _mostUrgentPlan() {
     // Urgent: active plan with lowest progress.
     final active = widget.plans.where((p) => !p.isCompleted).toList();
     if (active.isEmpty) return null;
-    active.sort(
-      (a, b) =>
-          (a.progressValue as double).compareTo(b.progressValue as double),
-    );
+    active.sort((a, b) => a.progressValue.compareTo(b.progressValue));
     return active.first;
   }
 
-  dynamic _fallingBehindPlan() {
+  StudyPlan? _fallingBehindPlan() {
     // Falling behind: high priority plan if any.
     final hp = widget.plans.where((p) => _isHighPriority(p)).toList();
     if (hp.isEmpty) return null;
-    hp.sort(
-      (a, b) =>
-          (a.progressValue as double).compareTo(b.progressValue as double),
-    );
+    hp.sort((a, b) => a.progressValue.compareTo(b.progressValue));
     return hp.first;
   }
 
@@ -128,10 +122,10 @@ class _PlannerPageState extends State<PlannerPage>
   int _completedPlansCount() => widget.plans.where((p) => p.isCompleted).length;
 
   int _completedDaysCount() =>
-      widget.plans.fold<int>(0, (sum, p) => sum + (p.completedCount as int));
+      widget.plans.fold<int>(0, (sum, p) => sum + p.completedCount);
 
   int _totalDaysCount() =>
-      widget.plans.fold<int>(0, (sum, p) => sum + (p.items.length as int));
+      widget.plans.fold<int>(0, (sum, p) => sum + p.items.length);
 
   String _todayTargetText() {
     final suggested = _suggestedPlan();
@@ -290,7 +284,7 @@ class _PlannerPageState extends State<PlannerPage>
                     surface: surface,
                     label: 'Suggested focus',
                     insight:
-                        'Your first active plan — a simple “what should I open next?” suggestion.',
+                        'Your first active plan - a simple "what should I open next?" suggestion.',
                     plan: suggested,
                     accent: const Color(0xFF8B5CF6),
                     onTap: () => widget.onOpenPlan(suggested),
@@ -301,7 +295,7 @@ class _PlannerPageState extends State<PlannerPage>
                     surface: surface,
                     label: 'Most urgent',
                     insight:
-                        'Among active plans, the one with the lowest overall progress — worth tackling soon.',
+                        'Among active plans, the one with the lowest overall progress - worth tackling soon.',
                     plan: urgent,
                     accent: const Color(0xFFF97316),
                     onTap: () => widget.onOpenPlan(urgent),
@@ -316,7 +310,7 @@ class _PlannerPageState extends State<PlannerPage>
                     lockedChild: _PremiumFeatureCard(
                       surface: surface,
                       title: 'Catch-up planner',
-                      subtitle: 'Locked — tap to upgrade',
+                      subtitle: 'Locked - tap to upgrade',
                       icon: Icons.lock_rounded,
                     ),
                     child: _PremiumFeatureCard(
@@ -673,7 +667,7 @@ class _SectionHeader extends StatelessWidget {
 
 class _PlanOverviewCard extends StatelessWidget {
   final Color surface;
-  final dynamic plan;
+  final StudyPlan plan;
   final VoidCallback onOpen;
   final VoidCallback onDelete;
   final bool isFavorite;
@@ -697,7 +691,7 @@ class _PlanOverviewCard extends StatelessWidget {
     final next = plan.nextIncomplete;
     final nextText = next == null
         ? 'No next task'
-        : 'Next: Day ${next.day} — ${next.title}';
+        : 'Next: Day ${next.day} - ${next.title}';
 
     return InkWell(
       onTap: onOpen,
@@ -742,9 +736,7 @@ class _PlanOverviewCard extends StatelessWidget {
                     isFavorite
                         ? Icons.star_rounded
                         : Icons.star_outline_rounded,
-                    color: isFavorite
-                        ? const Color(0xFFFBBF24)
-                        : textSecondary,
+                    color: isFavorite ? const Color(0xFFFBBF24) : textSecondary,
                   ),
                 ),
                 IconButton(
@@ -759,7 +751,7 @@ class _PlanOverviewCard extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              '${plan.subject} • ${plan.totalDays} days',
+              '${plan.subject} - ${plan.totalDays} days',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -842,7 +834,7 @@ class _SmartPlanCard extends StatelessWidget {
   final Color surface;
   final String label;
   final String? insight;
-  final dynamic plan;
+  final StudyPlan plan;
   final Color accent;
   final VoidCallback onTap;
 
@@ -864,7 +856,7 @@ class _SmartPlanCard extends StatelessWidget {
     final next = plan.nextIncomplete;
     final nextLine = next == null
         ? 'No next task'
-        : 'Next: Day ${next.day} — ${next.title}';
+        : 'Next: Day ${next.day} - ${next.title}';
 
     return InkWell(
       onTap: onTap,
@@ -923,7 +915,7 @@ class _SmartPlanCard extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        '${((plan.progressValue as double) * 100).round()}%',
+                        '${(plan.progressValue * 100).round()}%',
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           color: textSecondary,

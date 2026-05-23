@@ -79,7 +79,7 @@ class AboutScreen extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(22),
             child: Image.asset(
-              'assets/screenshots/dashboard_dark.png',
+              'assets/images/dashboard_dark.png',
               fit: BoxFit.cover,
             ),
           ),
@@ -112,7 +112,7 @@ class AboutScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Mobile Applications coursework — StudyFlow project.',
+                  'Mobile Applications coursework - StudyFlow project.',
                   style: TextStyle(color: textSecondary, height: 1.45),
                 ),
               ],
@@ -137,10 +137,7 @@ class AboutScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _LinkRow(
-                  icon: Icons.email_outlined,
-                  label: kSupportEmail,
-                ),
+                _LinkRow(icon: Icons.email_outlined, label: kSupportEmail),
                 const SizedBox(height: 14),
                 _LinkRow(
                   icon: Icons.code_rounded,
@@ -161,11 +158,7 @@ class _LinkRow extends StatelessWidget {
   final String label;
   final String? subtitle;
 
-  const _LinkRow({
-    required this.icon,
-    required this.label,
-    this.subtitle,
-  });
+  const _LinkRow({required this.icon, required this.label, this.subtitle});
 
   @override
   Widget build(BuildContext context) {

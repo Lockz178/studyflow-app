@@ -21,18 +21,12 @@ GoRouter createAppRouter() {
   return GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const HomeScreen(),
-      ),
+      GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
       ),
-      GoRoute(
-        path: '/about',
-        builder: (context, state) => const AboutScreen(),
-      ),
+      GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
       GoRoute(
         path: '/tips',
         builder: (context, state) => const TipsLibraryScreen(),
@@ -60,8 +54,7 @@ GoRouter createAppRouter() {
             subjects: MockDataService.subjects,
             onCreatePlan: c.createPlanFromValues,
             onOpenPlan: (plan) async {
-              final p = plan as StudyPlan;
-              await context.push('/plan/${p.id}', extra: p);
+              await context.push('/plan/${plan.id}', extra: plan);
               if (context.mounted) {
                 c.notifyPlansUpdated();
               }
