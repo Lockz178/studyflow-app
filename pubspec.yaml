@@ -1,5 +1,5 @@
 name: studyflow_app
-description: "StudyFlow — student study planner (Mobile Applications coursework)."
+description: "StudyFlow - student study planner (Mobile Applications coursework)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -65,7 +65,7 @@ flutter:
 
   assets:
     - assets/data/studyflow_seed_data.json
-    - assets/screenshots/
+    - assets/images/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../models/study_event.dart';
+import '../models/study_plan.dart';
 import '../premium/premium_ui.dart';
 import '../premium/premium_scope.dart';
-
-// Using existing models from main.dart (StudyPlan / PlanItem / StudyEvent).
-// Keep this screen UI-focused and easy to connect to real data later.
 
 enum ScheduleCategory {
   classSession,
@@ -32,18 +31,17 @@ class ScheduleEntry {
     this.isUrgent = false,
   });
 
-  bool get isAllDay => start.hour == 0 && start.minute == 0 && end.difference(start).inHours >= 23;
+  bool get isAllDay =>
+      start.hour == 0 &&
+      start.minute == 0 &&
+      end.difference(start).inHours >= 23;
 }
 
 class SchedulePage extends StatefulWidget {
-  final List<dynamic> plans; // expects List<StudyPlan>
-  final List<dynamic> events; // expects List<StudyEvent>
+  final List<StudyPlan> plans;
+  final List<StudyEvent> events;
 
-  const SchedulePage({
-    super.key,
-    required this.plans,
-    required this.events,
-  });
+  const SchedulePage({super.key, required this.plans, required this.events});
 
   @override
   State<SchedulePage> createState() => _SchedulePageState();
@@ -54,24 +52,23 @@ class _SchedulePageState extends State<SchedulePage> {
 
   DateTime _today(DateTime now) => DateTime(now.year, now.month, now.day);
 
-  dynamic _nextUpcomingEvent(DateTime now) {
+  StudyEvent? _nextUpcomingEvent(DateTime now) {
     final today = _today(now);
     final upcoming = widget.events.where((event) {
       final d = DateTime(event.date.year, event.date.month, event.date.day);
       return !d.isBefore(today);
-    }).toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
+    }).toList()..sort((a, b) => a.date.compareTo(b.date));
     return upcoming.isEmpty ? null : upcoming.first;
   }
 
-  List<dynamic> _deadlinesForDay(DateTime day) {
+  List<StudyEvent> _deadlinesForDay(DateTime day) {
     return widget.events.where((event) {
       final d = DateTime(event.date.year, event.date.month, event.date.day);
       return d == day;
     }).toList();
   }
 
-  dynamic _firstActivePlan() {
+  StudyPlan? _firstActivePlan() {
     for (final plan in widget.plans) {
       if (plan.items.isNotEmpty && !plan.isCompleted) return plan;
     }
@@ -81,7 +78,8 @@ class _SchedulePageState extends State<SchedulePage> {
   List<ScheduleEntry> _buildMockAndDerivedTimeline(DateTime now) {
     final today = _today(now);
 
-    DateTime at(int hour, int minute) => DateTime(today.year, today.month, today.day, hour, minute);
+    DateTime at(int hour, int minute) =>
+        DateTime(today.year, today.month, today.day, hour, minute);
 
     final entries = <ScheduleEntry>[
       ScheduleEntry(
@@ -138,7 +136,7 @@ class _SchedulePageState extends State<SchedulePage> {
 
     final activePlan = _firstActivePlan();
     final nextItem = activePlan?.nextIncomplete;
-    if (nextItem != null) {
+    if (activePlan != null && nextItem != null) {
       entries.add(
         ScheduleEntry(
           start: at(16, 0),
@@ -161,13 +159,17 @@ class _SchedulePageState extends State<SchedulePage> {
     return null;
   }
 
-  List<ScheduleEntry> _laterTodayEntries(List<ScheduleEntry> entries, DateTime now) {
+  List<ScheduleEntry> _laterTodayEntries(
+    List<ScheduleEntry> entries,
+    DateTime now,
+  ) {
     return entries.where((e) => e.start.isAfter(now)).toList();
   }
 
   List<ScheduleEntry> _tomorrowEntries(DateTime now) {
     final tomorrow = _today(now).add(const Duration(days: 1));
-    DateTime at(int hour, int minute) => DateTime(tomorrow.year, tomorrow.month, tomorrow.day, hour, minute);
+    DateTime at(int hour, int minute) =>
+        DateTime(tomorrow.year, tomorrow.month, tomorrow.day, hour, minute);
 
     final activePlan = _firstActivePlan();
     final nextItem = activePlan?.nextIncomplete;
@@ -203,7 +205,7 @@ class _SchedulePageState extends State<SchedulePage> {
       );
     }
 
-    if (nextItem != null) {
+    if (activePlan != null && nextItem != null) {
       list.add(
         ScheduleEntry(
           start: at(16, 0),
@@ -229,16 +231,14 @@ class _SchedulePageState extends State<SchedulePage> {
 
       int planned = 0;
       for (final plan in widget.plans) {
-        planned += plan.items.where((item) => !item.completed).length > 0 ? 1 : 0;
+        planned += plan.items.where((item) => !item.completed).isNotEmpty
+            ? 1
+            : 0;
       }
 
       final score = deadlineCount * 3 + planned;
       loads.add(
-        _WeekLoad(
-          day: day,
-          score: score,
-          deadlineCount: deadlineCount,
-        ),
+        _WeekLoad(day: day, score: score, deadlineCount: deadlineCount),
       );
     }
 
@@ -290,7 +290,20 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   String _formatMonthDay(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${months[date.month - 1]} ${date.day}';
   }
 
@@ -298,7 +311,9 @@ class _SchedulePageState extends State<SchedulePage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surface = isDark ? const Color(0xFF0F162A) : Colors.white;
-    final surfaceSoft = isDark ? const Color(0xFF161F36) : const Color(0xFFF8FAFC);
+    final surfaceSoft = isDark
+        ? const Color(0xFF161F36)
+        : const Color(0xFFF8FAFC);
     final textSecondary = Theme.of(context).colorScheme.onSurfaceVariant;
 
     final now = DateTime.now();
@@ -314,13 +329,13 @@ class _SchedulePageState extends State<SchedulePage> {
 
     final activePlan = _firstActivePlan();
     final nextItem = activePlan?.nextIncomplete;
-    final focusSuggestion = nextItem == null
+    final focusSuggestion = activePlan == null || nextItem == null
         ? null
         : 'Best focus slot today: 16:00 - 17:00 for ${activePlan.topic}';
     final nextDeadline = _nextUpcomingEvent(now);
     final deadlineLabel = nextDeadline == null
         ? 'No upcoming deadlines'
-        : '${nextDeadline.title} • ${_formatMonthDay(nextDeadline.date)}';
+        : '${nextDeadline.title} - ${_formatMonthDay(nextDeadline.date)}';
 
     return Scaffold(
       appBar: AppBar(
@@ -342,21 +357,15 @@ class _SchedulePageState extends State<SchedulePage> {
             title: 'Today, locked in.',
             subtitle: 'Quick scan your timeline, then focus.',
             chips: [
-              _HeroChip(
-                icon: Icons.alarm_rounded,
-                label: deadlineLabel,
-              ),
+              _HeroChip(icon: Icons.alarm_rounded, label: deadlineLabel),
               if (focusSuggestion != null)
-                _HeroChip(
-                  icon: Icons.timer_rounded,
-                  label: focusSuggestion,
-                ),
+                _HeroChip(icon: Icons.timer_rounded, label: focusSuggestion),
             ],
           ),
           const SizedBox(height: 16),
           _SectionHeader(
             title: 'Weekly overview',
-            subtitle: 'Heavy days pop visually — tap to scan your week',
+            subtitle: 'Heavy days pop visually - tap to scan your week',
           ),
           const SizedBox(height: 10),
           Container(
@@ -428,7 +437,8 @@ class _SchedulePageState extends State<SchedulePage> {
             _EmptyCard(
               surfaceSoft: surfaceSoft,
               title: 'No schedule for today yet',
-              subtitle: 'Create focus blocks from your study plans to make your day feel easier.',
+              subtitle:
+                  'Create focus blocks from your study plans to make your day feel easier.',
               cta: 'Create a plan',
               onTap: () => Navigator.pop(context),
             )
@@ -438,7 +448,8 @@ class _SchedulePageState extends State<SchedulePage> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _TimelineCard(
                   entry: entry,
-                  timeLabel: '${_formatTime(entry.start)} - ${_formatTime(entry.end)}',
+                  timeLabel:
+                      '${_formatTime(entry.start)} - ${_formatTime(entry.end)}',
                   color: _categoryColor(entry.category),
                 ),
               ),
@@ -446,7 +457,7 @@ class _SchedulePageState extends State<SchedulePage> {
           const SizedBox(height: 18),
           _SectionHeader(
             title: 'Upcoming',
-            subtitle: 'Now • Later Today • Tomorrow',
+            subtitle: 'Now - Later Today - Tomorrow',
           ),
           const SizedBox(height: 10),
           Container(
@@ -469,18 +480,24 @@ class _SchedulePageState extends State<SchedulePage> {
                   value: current == null
                       ? 'No active block'
                       : '${_formatTime(current.start)} ${current.title}',
-                  tagColor: current == null ? null : _categoryColor(current.category),
+                  tagColor: current == null
+                      ? null
+                      : _categoryColor(current.category),
                 ),
                 const SizedBox(height: 12),
                 _UpcomingRow(
                   label: 'Later today',
-                  value: laterToday.isEmpty ? 'Nothing scheduled' : '${laterToday.length} blocks',
+                  value: laterToday.isEmpty
+                      ? 'Nothing scheduled'
+                      : '${laterToday.length} blocks',
                   tagColor: laterToday.isEmpty ? null : const Color(0xFF8B5CF6),
                 ),
                 const SizedBox(height: 12),
                 _UpcomingRow(
                   label: 'Tomorrow',
-                  value: tomorrow.isEmpty ? 'Nothing scheduled' : '${tomorrow.length} blocks',
+                  value: tomorrow.isEmpty
+                      ? 'Nothing scheduled'
+                      : '${tomorrow.length} blocks',
                   tagColor: tomorrow.isEmpty ? null : const Color(0xFF06B6D4),
                 ),
               ],
@@ -496,7 +513,8 @@ class _SchedulePageState extends State<SchedulePage> {
             _EmptyCard(
               surfaceSoft: surfaceSoft,
               title: 'No focus suggestion yet',
-              subtitle: 'Create a study plan first, then Schedule will suggest focus blocks.',
+              subtitle:
+                  'Create a study plan first, then Schedule will suggest focus blocks.',
               cta: 'Create a plan',
               onTap: () => Navigator.pop(context),
             )
@@ -505,7 +523,11 @@ class _SchedulePageState extends State<SchedulePage> {
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF6D28D9), Color(0xFF9333EA), Color(0xFFEC4899)],
+                  colors: [
+                    Color(0xFF6D28D9),
+                    Color(0xFF9333EA),
+                    Color(0xFFEC4899),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -547,8 +569,11 @@ class _SchedulePageState extends State<SchedulePage> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Task: ${nextItem.title}',
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          'Task: ${nextItem!.title}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
@@ -559,16 +584,17 @@ class _SchedulePageState extends State<SchedulePage> {
           const SizedBox(height: 18),
           _SectionHeader(
             title: 'Premium upgrades',
-            subtitle: 'Smarter schedule — zero stress',
+            subtitle: 'Smarter schedule - zero stress',
           ),
           const SizedBox(height: 10),
           PremiumGate(
             title: 'Auto-generate my daily schedule',
-            subtitle: 'Turn deadlines + plans into a realistic day plan with breaks.',
+            subtitle:
+                'Turn deadlines + plans into a realistic day plan with breaks.',
             lockedChild: _PremiumFeatureCard(
               surface: surface,
               title: 'Auto-generated schedule',
-              subtitle: 'Locked — tap to upgrade',
+              subtitle: 'Locked - tap to upgrade',
               icon: Icons.lock_rounded,
             ),
             child: _PremiumFeatureCard(
@@ -585,7 +611,7 @@ class _SchedulePageState extends State<SchedulePage> {
             lockedChild: _PremiumFeatureCard(
               surface: surface,
               title: 'Conflict detection',
-              subtitle: 'Locked — tap to upgrade',
+              subtitle: 'Locked - tap to upgrade',
               icon: Icons.lock_rounded,
             ),
             child: _PremiumFeatureCard(
@@ -602,13 +628,14 @@ class _SchedulePageState extends State<SchedulePage> {
             lockedChild: _PremiumFeatureCard(
               surface: surface,
               title: 'Smart time-blocking',
-              subtitle: 'Locked — tap to upgrade',
+              subtitle: 'Locked - tap to upgrade',
               icon: Icons.lock_rounded,
             ),
             child: _PremiumFeatureCard(
               surface: surface,
               title: 'Smart time-blocking',
-              subtitle: 'Schedule focus blocks based on your progress + urgency.',
+              subtitle:
+                  'Schedule focus blocks based on your progress + urgency.',
               icon: Icons.view_timeline_rounded,
             ),
           ),
@@ -755,11 +782,7 @@ class _HeroCard extends StatelessWidget {
           ),
           if (chips.isNotEmpty) ...[
             const SizedBox(height: 14),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: chips,
-            ),
+            Wrap(spacing: 10, runSpacing: 10, children: chips),
           ],
         ],
       ),
@@ -771,10 +794,7 @@ class _HeroChip extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _HeroChip({
-    required this.icon,
-    required this.label,
-  });
+  const _HeroChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -783,11 +803,11 @@ class _HeroChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: (isDark ? Colors.white : const Color(0xFF111827)).withAlpha(isDark ? 14 : 8),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFF8B5CF6).withAlpha(70),
+        color: (isDark ? Colors.white : const Color(0xFF111827)).withAlpha(
+          isDark ? 14 : 8,
         ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF8B5CF6).withAlpha(70)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -877,7 +897,9 @@ class _TimelineCard extends StatelessWidget {
         color: surface,
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: entry.isUrgent ? const Color(0xFFF97316).withAlpha(120) : color.withAlpha(90),
+          color: entry.isUrgent
+              ? const Color(0xFFF97316).withAlpha(120)
+              : color.withAlpha(90),
         ),
         boxShadow: [
           BoxShadow(
@@ -931,7 +953,11 @@ class _TimelineCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   entry.subtitle,
-                  style: TextStyle(fontSize: 13, color: textSecondary, height: 1.35),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: textSecondary,
+                    height: 1.35,
+                  ),
                 ),
               ],
             ),
@@ -948,10 +974,10 @@ class _TimelineCard extends StatelessWidget {
               entry.category == ScheduleCategory.deadline
                   ? Icons.alarm_rounded
                   : entry.category == ScheduleCategory.breakTime
-                      ? Icons.coffee_rounded
-                      : entry.category == ScheduleCategory.classSession
-                          ? Icons.school_rounded
-                          : Icons.auto_awesome_rounded,
+                  ? Icons.coffee_rounded
+                  : entry.category == ScheduleCategory.classSession
+                  ? Icons.school_rounded
+                  : Icons.auto_awesome_rounded,
               color: color,
             ),
           ),
@@ -1062,7 +1088,11 @@ class _EmptyCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: textPrimary),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: textPrimary,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -1075,7 +1105,9 @@ class _EmptyCard extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF111827),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
             ),
             child: Text(cta),
           ),
@@ -1139,12 +1171,20 @@ class _PremiumFeatureCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: textPrimary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    color: textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 13, color: textSecondary, height: 1.35),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: textSecondary,
+                    height: 1.35,
+                  ),
                 ),
               ],
             ),
@@ -1247,4 +1287,3 @@ class _WeekDayPill extends StatelessWidget {
     );
   }
 }
-

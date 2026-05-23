@@ -88,7 +88,7 @@ class StudyPlanCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              '${plan.subject} • ${plan.totalDays} days',
+              '${plan.subject} - ${plan.totalDays} days',
               style: TextStyle(
                 fontSize: 13,
                 color: textSecondary,

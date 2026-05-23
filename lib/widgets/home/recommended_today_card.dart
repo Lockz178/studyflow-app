@@ -161,7 +161,7 @@ class RecommendedTodayCard extends StatelessWidget {
                     (event) => Padding(
                       padding: const EdgeInsets.only(bottom: 6),
                       child: Text(
-                        '• ${event.title} — ${event.course}',
+                        '- ${event.title} - ${event.course}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13,
@@ -176,7 +176,7 @@ class RecommendedTodayCard extends StatelessWidget {
           if (windowDeadlines.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
-              'Next deadline: ${windowDeadlines.first.title} • ${formatDate(windowDeadlines.first.date)}',
+              'Next deadline: ${windowDeadlines.first.title} - ${formatDate(windowDeadlines.first.date)}',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
@@ -186,7 +186,7 @@ class RecommendedTodayCard extends StatelessWidget {
           ] else if (nextDeadline != null) ...[
             const SizedBox(height: 12),
             Text(
-              'Next deadline: ${nextDeadline!.title} • ${formatDate(nextDeadline!.date)}',
+              'Next deadline: ${nextDeadline!.title} - ${formatDate(nextDeadline!.date)}',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,

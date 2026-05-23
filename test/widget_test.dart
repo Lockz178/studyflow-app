@@ -9,9 +9,33 @@ import 'package:studyflow_app/providers/app_settings_provider.dart';
 import 'package:studyflow_app/providers/favourites_provider.dart';
 import 'package:studyflow_app/providers/study_flow_controller.dart';
 import 'package:studyflow_app/router/app_router.dart';
+import 'package:studyflow_app/services/mock_data_service.dart';
+
+const _widgetSeed = '''
+{
+  "subjects": ["Math", "SQL", "Programming"],
+  "learningTips": ["Use active recall before rereading."],
+  "eventSeeds": [
+    { "title": "Database assignment", "course": "SQL", "day": 2, "color": "F97316" }
+  ],
+  "templates": {
+    "Math": [
+      { "title": "Review formulas", "details": "Study formulas and examples." }
+    ],
+    "SQL": [
+      { "title": "Practice queries", "details": "Write SELECT and JOIN queries." }
+    ],
+    "Programming": [
+      { "title": "Code practice", "details": "Solve one small coding task." }
+    ]
+  }
+}
+''';
 
 void main() {
   Future<GoRouter> pumpApp(WidgetTester tester) async {
+    MockDataService.reset();
+    MockDataService.loadFromJsonString(_widgetSeed);
     SharedPreferences.setMockInitialValues({});
 
     final settings = AppSettingsProvider();
@@ -58,6 +82,8 @@ void main() {
   ) async {
     TestWidgetsFlutterBinding.ensureInitialized();
 
+    MockDataService.reset();
+    MockDataService.loadFromJsonString(_widgetSeed);
     SharedPreferences.setMockInitialValues({});
 
     final settings = AppSettingsProvider();
@@ -92,6 +118,8 @@ void main() {
   ) async {
     TestWidgetsFlutterBinding.ensureInitialized();
 
+    MockDataService.reset();
+    MockDataService.loadFromJsonString(_widgetSeed);
     SharedPreferences.setMockInitialValues({});
 
     final settings = AppSettingsProvider();

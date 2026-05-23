@@ -16,10 +16,14 @@ class PremiumBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPremium = PremiumScope.of(context).isPremium;
     final label = isPremium ? 'PREMIUM' : 'FREE';
-    final background = isPremium ? const Color(0xFF10B981) : const Color(0xFF7C3AED);
+    final background = isPremium
+        ? const Color(0xFF10B981)
+        : const Color(0xFF7C3AED);
 
     return Container(
-      padding: compact ? const EdgeInsets.symmetric(horizontal: 8, vertical: 5) : padding,
+      padding: compact
+          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 5)
+          : padding,
       decoration: BoxDecoration(
         color: background.withAlpha(40),
         borderRadius: BorderRadius.circular(999),
@@ -29,7 +33,9 @@ class PremiumBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isPremium ? Icons.workspace_premium_rounded : Icons.lock_open_rounded,
+            isPremium
+                ? Icons.workspace_premium_rounded
+                : Icons.lock_open_rounded,
             size: compact ? 14 : 16,
             color: background,
           ),
@@ -80,7 +86,7 @@ class PremiumGate extends StatelessWidget {
     required this.child,
     this.lockedChild,
     this.enabled = true,
-    this.lockedMinHeight = 190,
+    this.lockedMinHeight = 220,
   });
 
   @override
@@ -104,8 +110,14 @@ class PremiumGate extends StatelessWidget {
                   onTap: () => showUpgradeBottomSheet(context),
                   child: Center(
                     child: Container(
-                      margin: const EdgeInsets.all(18),
-                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 14,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).brightness == Brightness.dark
                             ? const Color(0xFF0F162A).withAlpha(220)
@@ -220,121 +232,130 @@ class _UpgradeSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          Row(
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+            Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(18),
                   ),
-                  borderRadius: BorderRadius.circular(18),
+                  child: const Icon(
+                    Icons.workspace_premium_rounded,
+                    color: Colors.white,
+                  ),
                 ),
-                child: const Icon(Icons.workspace_premium_rounded, color: Colors.white),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'StudyFlow Premium',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: textPrimary,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'StudyFlow Premium',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: textPrimary,
+                        ),
                       ),
+                      Text(
+                        'Smarter planning, better recommendations, deeper insights.',
+                        style: TextStyle(fontSize: 13, color: textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const PremiumBadge(compact: true),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _FeatureRow(
+              icon: Icons.auto_awesome_rounded,
+              title: 'Adaptive planner',
+              subtitle: 'Catch up automatically if you miss days.',
+            ),
+            _FeatureRow(
+              icon: Icons.psychology_alt_rounded,
+              title: 'Better recommendations',
+              subtitle: 'Based on urgency + incomplete progress.',
+            ),
+            _FeatureRow(
+              icon: Icons.insights_rounded,
+              title: 'Premium analytics',
+              subtitle: 'Stronger/weakest subjects and completion insights.',
+            ),
+            _FeatureRow(
+              icon: Icons.cloud_sync_rounded,
+              title: 'Cloud backup (placeholder)',
+              subtitle: 'UI only for now - no backend yet.',
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  final messenger = ScaffoldMessenger.of(context);
+                  controller.setPremium(true);
+                  Navigator.pop(context);
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: const Text('Premium enabled (test mode)'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: isDark ? const Color(0xFF111827) : null,
                     ),
-                    Text(
-                      'Smarter planning, better recommendations, deeper insights.',
-                      style: TextStyle(fontSize: 13, color: textSecondary),
-                    ),
-                  ],
+                  );
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                child: const Text(
+                  'Enable Premium (test)',
+                  style: TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
-              const PremiumBadge(compact: true),
-            ],
-          ),
-          const SizedBox(height: 14),
-          _FeatureRow(
-            icon: Icons.auto_awesome_rounded,
-            title: 'Adaptive planner',
-            subtitle: 'Catch up automatically if you miss days.',
-          ),
-          _FeatureRow(
-            icon: Icons.psychology_alt_rounded,
-            title: 'Better recommendations',
-            subtitle: 'Based on urgency + incomplete progress.',
-          ),
-          _FeatureRow(
-            icon: Icons.insights_rounded,
-            title: 'Premium analytics',
-            subtitle: 'Stronger/weakest subjects and completion insights.',
-          ),
-          _FeatureRow(
-            icon: Icons.cloud_sync_rounded,
-            title: 'Cloud backup (placeholder)',
-            subtitle: 'UI only for now — no backend yet.',
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () {
-                final messenger = ScaffoldMessenger.of(context);
-                controller.setPremium(true);
-                Navigator.pop(context);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: const Text('Premium enabled (test mode)'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: isDark ? const Color(0xFF111827) : null,
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  final messenger = ScaffoldMessenger.of(context);
+                  controller.setPremium(false);
+                  Navigator.pop(context);
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: const Text('Premium disabled (test mode)'),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: isDark ? const Color(0xFF111827) : null,
+                    ),
+                  );
+                },
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                    color: const Color(0xFF7C3AED).withAlpha(140),
                   ),
-                );
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-              ),
-              child: const Text(
-                'Enable Premium (test)',
-                style: TextStyle(fontWeight: FontWeight.w900),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                child: const Text('Stay Free'),
               ),
             ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                final messenger = ScaffoldMessenger.of(context);
-                controller.setPremium(false);
-                Navigator.pop(context);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: const Text('Premium disabled (test mode)'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: isDark ? const Color(0xFF111827) : null,
-                  ),
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: const Color(0xFF7C3AED).withAlpha(140)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-              ),
-              child: const Text('Stay Free'),
+            const SizedBox(height: 6),
+            Text(
+              'No real billing yet. This is a local test toggle.',
+              style: TextStyle(fontSize: 12, color: textSecondary),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'No real billing yet. This is a local test toggle.',
-            style: TextStyle(fontSize: 12, color: textSecondary),
-          ),
           ],
         ),
       ),
@@ -378,10 +399,16 @@ class _FeatureRow extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(fontWeight: FontWeight.w900, color: textPrimary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 2),
-                Text(subtitle, style: TextStyle(fontSize: 12, color: textSecondary)),
+                Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 12, color: textSecondary),
+                ),
               ],
             ),
           ),

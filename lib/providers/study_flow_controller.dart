@@ -11,7 +11,11 @@ import '../services/mock_data_service.dart';
 class StudyFlowController extends ChangeNotifier {
   static const _plansKey = 'studyflow_plans';
 
-  DateTime _displayedMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _displayedMonth = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    1,
+  );
   String _learningTip = '';
   List<StudyEvent> _allEvents = [];
   int _deadlineWindowDays = 7;
@@ -19,6 +23,7 @@ class StudyFlowController extends ChangeNotifier {
   final List<StudyPlan> _plans = [];
   bool _isLoadingSeedData = true;
   String? _seedDataError;
+  String? _persistenceError;
 
   DateTime get displayedMonth => _displayedMonth;
   String get learningTip => _learningTip;
@@ -27,6 +32,7 @@ class StudyFlowController extends ChangeNotifier {
   List<StudyPlan> get plans => List.unmodifiable(_plans);
   bool get isLoadingSeedData => _isLoadingSeedData;
   String? get seedDataError => _seedDataError;
+  String? get persistenceError => _persistenceError;
 
   StudyPlan? planById(String id) {
     for (final p in _plans) {
@@ -45,7 +51,12 @@ class StudyFlowController extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final list = _plans.map((p) => jsonEncode(p.toJson())).toList();
       await prefs.setStringList(_plansKey, list);
-    } catch (_) {}
+      _persistenceError = null;
+    } catch (error, stackTrace) {
+      _persistenceError = error.toString();
+      debugPrint('Failed to persist study plans: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   Future<void> _restorePlans() async {
@@ -57,8 +68,13 @@ class StudyFlowController extends ChangeNotifier {
           .map((s) => StudyPlan.fromJson(jsonDecode(s) as Map<String, dynamic>))
           .toList();
       _plans.addAll(loaded);
+      _persistenceError = null;
       notifyListeners();
-    } catch (_) {}
+    } catch (error, stackTrace) {
+      _persistenceError = error.toString();
+      debugPrint('Failed to restore study plans: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   Future<void> loadSeedData(DateTime now) async {
